@@ -6,6 +6,8 @@ from ckanext.recombinant.errors import RecombinantException
 from ckanext.recombinant.datatypes import datastore_type
 from ckanext.recombinant.helpers import recombinant_language_text
 
+DROPDOWN_MAX = 30
+
 boolean_validator = openpyxl.worksheet.datavalidation.DataValidation(
     type="list", formula1='"FALSE,TRUE"', allow_blank=True)
 
@@ -62,7 +64,7 @@ def _populate_excel_sheet(sheet, chromo, org, refs):
         fill_cell(2, n, _(field['label']), header_style)
         fill_cell(3, n, field['datastore_id'], header_style)
         # jumping through openpyxl hoops:
-        col_letter = openpyxl.cell.get_column_letter(n)
+        col_letter = openpyxl.utils.get_column_letter(n)
         col = sheet.column_dimensions[col_letter]
         col.width = field['excel_column_width']
         # FIXME: format only below header
@@ -83,7 +85,9 @@ def _populate_excel_sheet(sheet, chromo, org, refs):
             v = openpyxl.worksheet.datavalidation.DataValidation(
                 type="list",
                 formula1=choice_range,
-                allow_blank=True)
+                allow_blank=True,
+                showDropDown=refN - ref1 > DROPDOWN_MAX, # =True hides it!
+                )
             v.errorTitle = u'Invalid choice'
             v.error = (u'Please enter one of the valid keys shown on '
                 'sheet "reference" rows {0}-{1}'.format(ref1, refN))
@@ -92,7 +96,7 @@ def _populate_excel_sheet(sheet, chromo, org, refs):
 
             # hilight header if bad values pasted below
             sheet.conditional_formatting.add("{0}2".format(col_letter),
-                openpyxl.formatting.FormulaRule([(
+                openpyxl.formatting.rule.FormulaRule([(
                     'COUNTIF({0},"<>"&"")' # all non-blank cells
                     '-SUMPRODUCT(COUNTIF({0},{1}))'
                     .format(validation_range, choice_range))],
