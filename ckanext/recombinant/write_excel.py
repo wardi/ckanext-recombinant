@@ -86,7 +86,7 @@ def _populate_excel_sheet(sheet, chromo, org, refs):
                 type="list",
                 formula1=choice_range,
                 allow_blank=True,
-                showDropDown=refN - ref1 > DROPDOWN_MAX, # =True hides it!
+                show_drop_down=refN - ref1 <= DROPDOWN_MAX,
                 )
             v.errorTitle = u'Invalid choice'
             v.error = (u'Please enter one of the valid keys shown on '
